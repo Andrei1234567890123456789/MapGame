@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Landmark</title>
+
+    <link rel="stylesheet" href="css/style.css"/>
+
+</head>
+
+<body>
+
+<h2>Create Landmark</h2>
+
+<form id="landmark-create-form"action="/createLandmark" method="post" enctype="multipart/form-data">
+
+    <label>Title</label>
+    <input type="text" name="title" required>
+
+    <label>Description</label>
+    <textarea name="description" rows="4" required></textarea>
+
+    <label>Status</label>
+    <input type="text" name="status" required>
+
+    <label>Latitude</label>
+    <input type="number" step="any" name="latitude" required>
+
+    <label>Longitude</label>
+    <input type="number" step="any" name="longitude" required>
+
+    <label>Image</label>
+    <input type="file" name="image" accept="image/*" required>
+
+    <label>Audio</label>
+    <input type="file" name="audio" accept="audio/*">
+
+    <button type="submit">Create Landmark</button>
+
+</form>
+
+</body>
+</html>
