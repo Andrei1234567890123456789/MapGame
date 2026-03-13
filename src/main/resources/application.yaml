@@ -1,5 +1,11 @@
 spring:
   datasource:
+
+#    url: jdbc:postgresql://localhost:5432/map_game_db
+#    username: postgres
+#    password: root1912
+#    driver-class-name: org.postgresql.Driver
+
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
