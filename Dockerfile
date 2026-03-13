@@ -17,4 +17,4 @@ RUN ./gradlew build -x test
 EXPOSE 8080
 
 # Run the jar
-CMD ["sh", "-c", "java -jar build/libs/*.jar"]
+CMD ["sh", "-c", "java -jar build/libs/*SNAPSHOT.jar"]
