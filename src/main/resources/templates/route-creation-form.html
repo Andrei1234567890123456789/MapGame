@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mapbox Game Prototype</title>
+    <title>Create Route</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="css/style.css"/>
@@ -20,9 +20,9 @@
 </head>
 <body>
     <div id = "side-menu">
-        <button id="side-menu-close">X</button>
         <div id="side-menu-container"></div>
     </div>
+    <div id="coord-box"></div>
     <div id="myMap"></div>
 
     <!-- Leaflet JS -->
@@ -33,8 +33,6 @@
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 
     <!-- Mapbox setup script -->
-    <script src="js/init-landmark.js"></script>
-    <script src="js/ui-controller.js"></script>
-    <script src="js/map.js"></script>
+    <script src="js/create-route.js"></script>
 </body>
 </html>

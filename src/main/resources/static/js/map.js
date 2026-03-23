@@ -2,7 +2,6 @@
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFuaWFuaWEiLCJhIjoiY21tamZmOTN0MTczODJxc29hMGQ5dThlMiJ9.p1HwbokXt5p29SirSKh3_g';
 
 //state variables
-let landmarks = [];
 const interactionRadius = 50;
 //default coords: sofia center(serdika)
 let currentLatitude = 42.6977;
@@ -17,40 +16,7 @@ let currentRouteTarget;
 let currentRouteStart;
 const routeUpdateDistance = 10;
 
-//UI
-let sideMenu = document.getElementById('side-menu');
-let sideMenuOpen = false;
-let container = document.getElementById('side-menu-container');
 
-
-class landmark{
-    constructor(latitude, longitude, image, title, description, status, audio){
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.icon = L.icon({
-            iconUrl: image,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40]
-        });
-        this.marker = L.marker([latitude, longitude], {
-            icon: this.icon
-        }).addTo(map);
-        this.marker.on('click', () => createRoute(this));
-        this.image = image;
-        this.title = title;
-        this.description = description;
-        this.active = false;
-        this.status = status;
-
-        const circle = L.circle([latitude, longitude], {
-            radius: interactionRadius,
-            color: 'red'
-        }).addTo(map);
-
-        landmarks.push(this);
-        this.audio = audio; // has to be a new Audio() oject
-    }
-}
 // Initialize the map
 function showMap(){
     map = L.map('myMap').setView([currentLatitude, currentLongitude], 14);
@@ -75,31 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAllLandmarks();
 });
 
-function loadAllLandmarks(){
-    fetch("/getLandmarks")
-    .then(res => res.json())
-    .then(data => {
 
-        data.forEach(l => {
-            // (latitude, longitude, image, title, description, status, audio)
-            const imageUrl = `/getLandmarks/${l.landmarkId}/image`;
-            const audioObj = new Audio(`/getLandmarks/${l.landmarkId}/audio`);
-
-            new landmark(
-                l.latitude,
-                l.longitude,
-                imageUrl,
-                l.title,
-                l.description,
-                l.status,
-                audioObj
-            );
-
-        });
-
-    })
-    .catch(err => console.error("Failed to load landmarks:", err));
-}
 
 
 // Optional: simulate player movement
@@ -256,66 +198,3 @@ function checkInteractions(){
 
 }
 
-function manageSideManu(){
-    const closeBtn = document.getElementById('side-menu-close');
-    closeBtn.onclick = closeSideMenu;
-
-}
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function openSideMenu(child){
-    if(sideMenuOpen){
-        closeSideMenu();
-    }
-    sideMenuOpen = true;
-    let containerShift = -100;
-    sideMenu.style.left = containerShift+'%';
-    container.appendChild(child);
-    sideMenu.style.zIndex = 1000;
-    sideMenuOpen = true;
-    for(let i = 0; i < 100; i++){
-        containerShift++;
-        sideMenu.style.left = containerShift+'%';
-        await delay(10);
-    }
-    sideMenu.style.left = '2.5%';
-
-    
-
-}
-
-function closeSideMenu() {
-    console.log("menu closed");
-    sideMenu.style.zIndex = 0;
-    container.innerHTML = "";
-    sideMenuOpen = false;
-}
-
-function showPopupMenu(landmark) {
-    landmark.audio.play();
-
-    const content = document.createElement("div");
-
-    const title = document.createElement("h1");
-    title.textContent = landmark.title;
-
-    const status = document.createElement("p");
-    status.textContent = "Status: " + landmark.status;
-
-    const image = document.createElement("img");
-    image.src = landmark.image;
-    image.style.width = "80%";
-    image.style.height = "auto";
-
-    const description = document.createElement("p");
-    description.textContent = landmark.description;
-
-    content.appendChild(title);
-    content.appendChild(status); 
-    content.appendChild(image);
-    content.appendChild(description);
-
-    openSideMenu(content);
-}		

@@ -48,3 +48,46 @@
 #landmark-create-form button:hover{
     background-color: #45a049;
 }
+
+#intro-container{
+    text-align: center;
+}
+
+#intro-container a{
+    font-size: large;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+#create-button{
+    font-size: large;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.rounded-marker {
+  border-radius: 50%; /* makes it a circle */
+  overflow: hidden;
+}
+
+#coord-box {
+  position: absolute;
+  pointer-events: none; /* so it doesn't block map clicks */
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translate(10px, 10px); /* offset from cursor */
+  z-index: 1000;
+}
+
+.point-container{
+    border: 1px solid blue;
+}

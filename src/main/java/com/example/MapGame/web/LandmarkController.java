@@ -20,6 +20,11 @@ public class LandmarkController {
         this.landmarkRepository = landmarkRepository;
     }
 
+    @GetMapping
+    public String openIntro(){
+        return "intro";
+    }
+
     @GetMapping("/landmarks")
     public String openMainPage(){
         return "index";
@@ -27,6 +32,11 @@ public class LandmarkController {
     @GetMapping("/creator-form")
     public String openCreationForm(){
         return "landmark-creation-form";
+    }
+
+    @GetMapping("/route-creator-form")
+    public String openRouteCreationForm(){
+        return "route-creation-form";
     }
 
     @GetMapping("/getLandmarks")
