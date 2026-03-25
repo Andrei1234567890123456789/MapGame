@@ -2,12 +2,16 @@ const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFuaWFuaWEiLCJhIjoiY21tamZmOTN0MTczODJxc29hMGQ
 
 let map;
 
+
+
 //default coords: sofia center(serdika)
 //for map view only
 let currentLatitude = 42.6977;
 let currentLongitude = 23.3219;
 let landmarks = [];
+
 let lastPointIndex = -1;
+let routeName = null;
 let points = [];
 
 //UI
@@ -18,16 +22,10 @@ let sideMenuOpen = false;
 let container = document.getElementById('side-menu-container');
 
 class Point{
-    // constructor(latitude, longitude){
-    //     this.latitude = latitude;
-    //     this.longitude = longitude;
-    //     this.hasLandmark = false;
-    //     this.landmark = null;
-    // }
-
     constructor(latitude, longitude, landmark){
         this.latitude = latitude;
         this.longitude = longitude;
+        this.directions = '';
         if(landmark != null){
             this.hasLandmark = true;
             this.landmark = landmark;
@@ -39,7 +37,8 @@ class Point{
 }
 
 class landmark{
-    constructor(latitude, longitude, image, title){
+    constructor(latitude, longitude, image, title, id){
+        this.landmarkId = id;
         this.latitude = latitude;
         this.longitude = longitude;
         this.icon = L.icon({
@@ -71,7 +70,8 @@ function loadAllLandmarks(){
                 l.latitude,
                 l.longitude,
                 imageUrl,
-                l.title
+                l.title,
+                l.landmarkId
             );
 
         });
@@ -193,24 +193,67 @@ function addLandmarkPoint(landmark) {
 }
 
 function createRoute(){
-    alert("Запазването на пътя в базата данни още не е готово.")
-    //TODO: save route to the database
+    if(routeName == null){
+        alert("The route must have a name.");
+        return;
+    }
+    if(points.length <= 1){
+        alert("The route must go trough at least 2 points. Left click on a landmark or a blank space to create a point.");
+        return;
+    }
+    // alert("Запазването на пътя в базата данни още не е готово.")
+
+    const cleanPoints = points.map(p => ({
+        latitude: p.latitude,
+        longitude: p.longitude,
+        directions: p.directions || '',
+        landmarkId: p.landmark ? p.landmark.landmarkId : null
+    }));
+    console.log("creating route...");
+    console.log(JSON.stringify({
+            name: routeName,
+            points: cleanPoints
+        }));
+
+    fetch('/routes/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: routeName,
+            points: cleanPoints
+        })
+    });
+    alert("Route Saved");
+    location.reload();
 }
 
 function manageSideMenu(){
-    // if(points.length > 0){
-        
-    //     points.forEach(function (point, index) {
+    const nameInputForm = document.createElement("form");
+    const nameInputlabel = document.createElement("label");
+    const nameInput = document.createElement("input");
+    const nameInputButton = document.createElement("button");
 
-            
-    //     });
+    nameInputlabel.textContent = "Route Name:";
+    nameInputlabel.htmlFor = "userInput";
+    nameInput.type = "text";
+    nameInput.id = "userInput";
+    nameInputButton.type = "submit";
+    nameInputButton.textContent = "Save";
+    nameInputButton.className = "create-button";
 
+    nameInputForm.appendChild(nameInputlabel);
+    nameInputForm.appendChild(nameInput);
+    nameInputForm.appendChild(nameInputButton);
 
-    // }else{
-    //     const selectPoint = document.createElement("p");
-    //     selectPoint.textContent = "Click to select starting point";
-    //     content.appendChild(selectPoint);
-    // }
+    nameInputForm.addEventListener("submit", function(event){
+        event.preventDefault();
+
+        routeName = nameInput.value;
+        nameInputlabel.textContent = "Route Name:" + routeName;
+    });
+    content.appendChild(nameInputForm);
     sideMenu.appendChild(content);
     openSideMenu(content);
 
@@ -219,7 +262,7 @@ function addPointToMenu(point){
     if(lastPointIndex < 0){
         const createBtn = document.createElement("button");
         createBtn.textContent = "Create Route"
-        createBtn.id = "create-button";
+        createBtn.className = "create-button";
         createBtn.onclick = createRoute;
         content.appendChild(createBtn);
     }
@@ -233,7 +276,7 @@ function createPointHTML(point){
         pointContainer.className = "point-container";
 
         const coords = document.createElement("p");
-        coords.textContent = point.latitude + " " + point.longitude;
+        coords.textContent = point.latitude + ", " + point.longitude;
 
         if(point.landmark != null){
                 const image = document.createElement("img");
@@ -247,16 +290,41 @@ function createPointHTML(point){
                 pointContainer.appendChild(image);
                 pointContainer.appendChild(title);
         }
+
+        const directionsInputForm = document.createElement("form");
+        const directionsInputlabel = document.createElement("label");
+        const directionsInput = document.createElement("input");
+        const directionsInputButton = document.createElement("button");
+
+        directionsInputlabel.textContent = "Directions:";
+        directionsInputlabel.htmlFor = "userInput";
+        directionsInput.type = "text";
+        directionsInput.id = "userInput";
+        directionsInputButton.type = "submit";
+        directionsInputButton.textContent = "Save";
+        directionsInputButton.className = "create-button";
+
+        directionsInputForm.appendChild(directionsInputlabel);
+        directionsInputForm.appendChild(directionsInput);
+        directionsInputForm.appendChild(directionsInputButton);
+
+        directionsInputForm.addEventListener("submit", function(event){
+            event.preventDefault();
+
+            point.directions = directionsInput.value;
+            directionsInputlabel.textContent = "Directions:" + point.directions;
+        });
         pointContainer.appendChild(coords);
+        pointContainer.appendChild(directionsInputForm);
 
     return pointContainer;
 }
 
 async function openSideMenu(child){
-    if(sideMenuOpen){
-        closeSideMenu();
-    }
-    sideMenuOpen = true;
+   sideMenuOpen = true;
+
+ 
+
     container.appendChild(child);
     sideMenu.style.zIndex = 1000;
     sideMenuOpen = true;
