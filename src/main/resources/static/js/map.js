@@ -1,13 +1,9 @@
-// Replace with your Mapbox token
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFuaWFuaWEiLCJhIjoiY21tamZmOTN0MTczODJxc29hMGQ5dThlMiJ9.p1HwbokXt5p29SirSKh3_g';
+
 
 //state variables
 const interactionRadius = 50;
 //default coords: sofia center(serdika)
-let currentLatitude = 42.6977;
-let currentLongitude = 23.3219;
-let map;
-let playerMarker;
+
 
 //route
 let hasOpenRoute = false;
@@ -17,31 +13,33 @@ let currentRouteStart;
 const routeUpdateDistance = 10;
 
 
-// Initialize the map
-function showMap(){
-    map = L.map('myMap').setView([currentLatitude, currentLongitude], 14);
-    // Add Mapbox tiles
-    L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}`, {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>, © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        tileSize: 512,
-        zoomOffset: -1,
-        id: 'mapbox/streets-v11', // Change style if you want
-        accessToken: MAPBOX_TOKEN
-    }).addTo(map);
-
-    // Add player marker
-    playerMarker = L.marker([currentLatitude, currentLongitude]).addTo(map);
-}
-
 document.addEventListener("DOMContentLoaded", () => {
     showMap("myMap", 0, 0, "You");
     // trackPosition();
-    manageSideManu();
+    manageUi();
     loadAllLandmarks();
+    loadImagesInsideMapView();
 });
 
+async function loadImagesInsideMapView() {
+    const bounds = map.getBounds();
 
+    while(true){
+
+        for(let i = 0; i < landmarks.length; i++){
+            if(landmarks[i].image != null) continue;
+
+            const landmark = landmarks[i];
+            
+            const point = L.latLng(landmark.latitude, landmark.longitude);
+
+            if(bounds.contains(point) && map.getZoom() >= 15){
+                landmark.loadImage();
+            }
+        }
+        await delay(1000);
+    }
+}
 
 
 // Optional: simulate player movement
@@ -57,10 +55,12 @@ document.addEventListener('keydown', e => {
     if(e.key === 'a') currentLongitude -= 0.0005;
 
     if(e.key == "h"){
-        const l = new landmark(currentLatitude, currentLongitude + 0.001, "images/RaykoGaranow.jpg",
+        const l = new landmark(currentLatitude, currentLongitude + 0.001, -1,
             "Къщата на Райко Гаранов ул. Дунав 2",
             "Един от най-красивите софийски домове пази историите за интригуващи личности и драматични събития, оставили следи върху развитието на София и цяла България. Сградата е била собственост на Райко Горанов от Тетевен, университетски преподавател и професор по латински и древногръцки, голям дарител на университетската библиотека и съхранен в спомените на своите студенти като тайнствена и елегантна личност. Снажен и сдържан в поведението си, професорът е бил на 43 години, когато неговата изящна къща е завършена. Днес сградата е обновена, така че да отразява оригиналната си красота и да бъде една от тайните находки на София. Великолепните фасади са дело на архитект Карл Хайнрих (роден в Бохемия и учил в германския град Цитау) и скулптура Андреас Грайс (виенчанин, завършил образованието си в родния град). И двамата улавят строителния дух на българските градове след Освобождението и избират да работят и творят в София в продължение на десетилетия и до края на живота си. В тази архитектурна задача двамата не пестят украса за да подчертаят прозорците и главния вход с хармонични извивки, цветя, листа и елегантни женски фигури, с които изпълват фасадите и ги правят уникални за цяла София. Уличната фасада е симетрична, докато фасадата към прилежащия двор е по-раздвижена в съответствие с идеите на сецесиона. Главният ход е разположен в изнесен напред ризалит, декориран с годината на сградата и разярена лъвска глава."
-        , "free to visit", new Audio("audio/vine-boom.mp3"));
+        , "free to visit", -1);
+        l.image = "images/RaykoGaranow.jpg";
+        l.audio = new Audio("audio/vine-boom.mp3");
     }
     if(e.key == "r"){
         createRoute(landmarks[0]);
@@ -73,34 +73,9 @@ document.addEventListener('keydown', e => {
 });
 
 function updatePlayerPosition() {
-
-    // navigator.geolocation.getCurrentPosition(
-    //     function(position) {
-
-    //         const lat = position.coords.latitude;
-    //         const lng = position.coords.longitude;
-
-    //         currentLatitude = lat;
-    //         currentLongitude = lng;
-
-    //         console.log("position updated to: "+ lat + ", " + lng);
-
-    //         if (playerMarker) {
-    //             playerMarker.setLatLng([lat, lng]);
-    //             map.setView([lat, lng]);
-    //         }
-
-    //     },
-    //     function(error) {
-    //         console.error("Error getting location:", error);
-    //     },
-    //     {
-    //         enableHighAccuracy: true
-    //     }
-    // );
     checkInteractions();
     playerMarker.setLatLng([currentLatitude, currentLongitude]);
-    map.setView([currentLatitude, currentLongitude]);
+    map.setView([currentLatitude-viewOffset, currentLongitude], 15);
 
     if(hasOpenRoute){
         if(map.distance(L.latLng(currentLatitude, currentLongitude), currentRouteStart) >= routeUpdateDistance){
