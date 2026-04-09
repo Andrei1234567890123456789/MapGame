@@ -38,6 +38,7 @@ public class RouteServiceImpl implements RouteService {
         // 1. Create Route
         RouteEntity route = new RouteEntity();
         route.setName(dto.getName());
+        route.setDescription(dto.getDescription());
 
         List<RoutePointEntity> points = new ArrayList<>();
 

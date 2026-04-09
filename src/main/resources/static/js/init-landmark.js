@@ -80,3 +80,7 @@ function loadAllLandmarks() {
         })
         .catch(err => console.error("Failed to load landmarks:", err));
 }
+
+function createRoute(l){
+    console.log("undefined createRoute function");
+}

@@ -1,13 +1,12 @@
 package com.example.MapGame.model.dto;
 
-import com.example.MapGame.model.entity.RoutePointEntity;
-
 import java.util.List;
 
 public class CreateRouteDTO {
 
 
     private String name;
+    private String description;
     private List<CreateRoutePointDTO> points;
 
     public String getName() {
@@ -26,8 +25,17 @@ public class CreateRouteDTO {
         this.points = points;
     }
 
-    public CreateRouteDTO(String name, List<CreateRoutePointDTO> points) {
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public CreateRouteDTO(String name, String description, List<CreateRoutePointDTO> points) {
         this.name = name;
+        this.description = description;
         this.points = points;
     }
 }

@@ -1,17 +1,7 @@
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWFuaWFuaWEiLCJhIjoiY21tamZmOTN0MTczODJxc29hMGQ5dThlMiJ9.p1HwbokXt5p29SirSKh3_g';
-
-let map;
-
-
-
-//default coords: sofia center(serdika)
-//for map view only
-let currentLatitude = 42.6977;
-let currentLongitude = 23.3219;
-let landmarks = [];
 
 let lastPointIndex = -1;
 let routeName = null;
+let description = '';
 let points = [];
 
 //UI
@@ -35,66 +25,6 @@ class Point{
         }        
     }
 }
-
-class landmark{
-    constructor(latitude, longitude, image, title, id){
-        this.landmarkId = id;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.icon = L.icon({
-            iconUrl: image,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40],
-            className: 'rounded-marker'
-        });
-        this.marker = L.marker([latitude, longitude], {
-            icon: this.icon
-        }).addTo(map);
-        this.marker.on('click', () => addLandmarkPoint(this));
-        this.image = image;
-        this.title = title;
-
-        landmarks.push(this);
-    }
-}
-
-function loadAllLandmarks(){
-    fetch("/getLandmarks")
-    .then(res => res.json())
-    .then(data => {
-
-        data.forEach(l => {
-            const imageUrl = `/getLandmarks/${l.landmarkId}/image`;
-
-            new landmark(
-                l.latitude,
-                l.longitude,
-                imageUrl,
-                l.title,
-                l.landmarkId
-            );
-
-        });
-
-    })
-    .catch(err => console.error("Failed to load landmarks:", err));
-}
-
-// Initialize the map
-function showMap(){
-    map = L.map('myMap').setView([currentLatitude, currentLongitude], 14);
-    // Add Mapbox tiles
-    L.tileLayer(`https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}`, {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>, © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 20,
-        tileSize: 512,
-        zoomOffset: -1,
-        id: 'mapbox/streets-v11', // Change style if you want
-        accessToken: MAPBOX_TOKEN
-    }).addTo(map);
-}
-
-
 
 document.addEventListener("DOMContentLoaded", () => {
     showMap("myMap", 0, 0, "You");
@@ -163,9 +93,13 @@ function addPoint(lat, lng) {
     addPointToMenu(p);
     lastPointIndex++;
 }
+async function createRoute(landmark) {
+    //very ugly redirection, cuz its easier to redefine the onclick function
+    addLandmarkPoint(landmark);
+}
 
-function addLandmarkPoint(landmark) {
-
+async function addLandmarkPoint(landmark) {
+    if(landmark.image == null) await landmark.loadImage();
     const lat = landmark.latitude;
     const lng = landmark.longitude;
 
@@ -192,7 +126,7 @@ function addLandmarkPoint(landmark) {
     lastPointIndex++;
 }
 
-function createRoute(){
+function saveRoute(){
     if(routeName == null){
         alert("The route must have a name.");
         return;
@@ -212,6 +146,7 @@ function createRoute(){
     console.log("creating route...");
     console.log(JSON.stringify({
             name: routeName,
+            description: description,
             points: cleanPoints
         }));
 
@@ -222,6 +157,7 @@ function createRoute(){
         },
         body: JSON.stringify({
             name: routeName,
+            description: description,
             points: cleanPoints
         })
     });
@@ -243,9 +179,27 @@ function manageSideMenu(){
     nameInputButton.textContent = "Save";
     nameInputButton.className = "create-button";
 
+    const descriptionInputForm = document.createElement("form");
+    const descriptionInputlabel = document.createElement("label");
+    const descriptionInput = document.createElement("textarea");
+    const descriptionInputButton = document.createElement("button");
+
+    descriptionInputlabel.textContent = "Route Description:";
+    descriptionInputlabel.htmlFor = "userInput";
+    descriptionInput.type = "text";
+    descriptionInput.id = "userInput";
+    descriptionInput.rows = '5';
+    descriptionInputButton.type = "submit";
+    descriptionInputButton.textContent = "Save";
+    descriptionInputButton.className = "create-button";
+
     nameInputForm.appendChild(nameInputlabel);
     nameInputForm.appendChild(nameInput);
     nameInputForm.appendChild(nameInputButton);
+
+    descriptionInputForm.appendChild(descriptionInputlabel);
+    descriptionInputForm.appendChild(descriptionInput);
+    descriptionInputForm.appendChild(descriptionInputButton);
 
     nameInputForm.addEventListener("submit", function(event){
         event.preventDefault();
@@ -253,7 +207,15 @@ function manageSideMenu(){
         routeName = nameInput.value;
         nameInputlabel.textContent = "Route Name:" + routeName;
     });
+
+    descriptionInputForm.addEventListener("submit", function(event){
+        event.preventDefault();
+
+        description = descriptionInput.value;
+        descriptionInputlabel.textContent = "Route Description:" + description;
+    });
     content.appendChild(nameInputForm);
+    content.appendChild(descriptionInputForm);
     sideMenu.appendChild(content);
     openSideMenu(content);
 
@@ -263,7 +225,7 @@ function addPointToMenu(point){
         const createBtn = document.createElement("button");
         createBtn.textContent = "Create Route"
         createBtn.className = "create-button";
-        createBtn.onclick = createRoute;
+        createBtn.onclick = saveRoute;
         content.appendChild(createBtn);
     }
 
